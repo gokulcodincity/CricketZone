@@ -166,20 +166,3 @@ http://localhost:5173
 # 🌐 Database
 
 This project uses MongoDB Atlas cloud database with Beanie ODM.
-
----
-
-# ✅ Project Requirements Completed
-
-- Minimum 3 API calls using useEffect
-- Loading state implementation
-- Error handling implementation
-- List rendering using map()
-- Dynamic routing using useParams
-- React Router setup
-- Service file architecture
-- Clean folder structure
-- Country filter functionality
-- Role-based stats display
-
----
