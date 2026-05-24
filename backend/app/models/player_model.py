@@ -5,6 +5,8 @@ from typing import Optional
 
 class Player(Document):
 
+    player_id: Optional[str] = None
+
     name: str
     country: str
     role: str
