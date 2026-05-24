@@ -5,6 +5,7 @@ from typing import Optional
 
 class PlayerCreate(BaseModel):
 
+
     name: str
     country: str
     role: str
