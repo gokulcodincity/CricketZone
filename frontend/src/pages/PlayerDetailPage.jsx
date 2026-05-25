@@ -1,213 +1,664 @@
-import { useParams, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { getPlayerById } from "../services/apiService";
+import {
+  useParams,
+  Link,
+  useNavigate,
+} from "react-router-dom";
+
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  getPlayerById,
+  deletePlayer,
+} from "../services/apiService";
+
 import Loader from "../components/Loader";
+
 import ErrorMessage from "../components/ErrorMessage";
 
-/* ─── Helpers ───────────────────────────────────────────── */
-function countryFlag(country) {
-  if (country === "India")        return "\uD83C\uDDEE\uD83C\uDDF3";
-  if (country === "Australia")    return "\uD83C\uDDE6\uD83C\uDDFA";
-  if (country === "England")      return "\uD83C\uDFF4";
-  if (country === "Pakistan")     return "\uD83C\uDDF5\uD83C\uDDF0";
-  if (country === "South Africa") return "\uD83C\uDDFF\uD83C\uDDE6";
-  if (country === "New Zealand")  return "\uD83C\uDDF3\uD83C\uDDFF";
-  if (country === "West Indies")  return "\uD83C\uDFDD";
-  if (country === "Sri Lanka")    return "\uD83C\uDDF1\uD83C\uDDF0";
-  if (country === "Bangladesh")   return "\uD83C\uDDE7\uD83C\uDDE9";
-  return "\uD83C\uDF0D";
-}
-
-function avatarGradient(role) {
-  if (role === "Batsman")       return "from-brand-500 to-brand-700";
-  if (role === "Bowler")        return "from-orange-400 to-orange-600";
-  if (role === "All-rounder")   return "from-yellow-400 to-orange-500";
-  if (role === "Wicket-keeper") return "from-purple-500 to-purple-700";
-  return "from-brand-500 to-brand-700";
-}
-
-function roleBadge(role) {
-  if (role === "Batsman")       return { cls: "badge-teal",   icon: "🏏" };
-  if (role === "Bowler")        return { cls: "badge-orange", icon: "⚡" };
-  if (role === "All-rounder")   return { cls: "badge-gold",   icon: "⭐" };
-  if (role === "Wicket-keeper") return { cls: "badge-purple", icon: "🧤" };
-  return { cls: "badge-teal", icon: "🏏" };
-}
-
-function initials(name) {
-  if (!name) return "??";
-  return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-}
-
-/* ─── Stat card ─────────────────────────────────────────── */
-const StatCard = ({ label, value, sub, accent = "text-brand-400" }) => (
-  <div className="glass rounded-2xl p-5 hover:border-brand-500/20 transition-all duration-200">
-    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 mb-2">{label}</p>
-    <p className={`font-display font-black text-3xl leading-none ${accent} mb-1`}>{value}</p>
-    {sub && <p className="text-xs text-slate-600 mt-1">{sub}</p>}
-  </div>
-);
-
-/* ─── Page ──────────────────────────────────────────────── */
 const PlayerDetailPage = () => {
+
   const { id } = useParams();
 
-  const [player,  setPlayer]  = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState("");
+  const navigate = useNavigate();
 
-  useEffect(() => { fetchPlayer(); }, [id]);
+  const [player, setPlayer] =
+    useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [showDelete, setShowDelete] =
+    useState(false);
+
+  const [deleting, setDeleting] =
+    useState(false);
+
+  useEffect(() => {
+
+    fetchPlayer();
+
+  }, [id]);
 
   const fetchPlayer = async () => {
+
     try {
+
       setLoading(true);
+
       setError("");
-      const data = await getPlayerById(id);
+
+      const data =
+        await getPlayerById(id);
+
       setPlayer(data);
+
     } catch (err) {
-      const msg =
-        err.response?.data?.detail || err.message || "Player not found.";
-      setError(msg);
+
+      setError(
+        "Player not found"
+      );
+
     } finally {
+
       setLoading(false);
     }
   };
 
-  if (loading) return <Loader />;
+  const handleDelete = async () => {
 
-  if (error) return (
-    <div className="min-h-screen bg-surface-900 bg-hero-gradient">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-        <Link to="/players" className="inline-flex items-center gap-2 text-slate-400 text-sm
-                                       hover:text-brand-400 transition-colors mb-8">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
-          Back to Players
-        </Link>
-        <ErrorMessage message={error} onRetry={fetchPlayer} />
-      </main>
-    </div>
-  );
+    try {
 
-  const isBatsman = player.role === "Batsman" || player.role === "All-rounder";
-  const isBowler  = player.role === "Bowler"  || player.role === "All-rounder";
-  const badge = roleBadge(player.role);
-  const grad  = avatarGradient(player.role);
+      setDeleting(true);
+
+      await deletePlayer(id);
+
+      navigate("/players");
+
+    } catch (err) {
+
+      setError(
+        "Failed to delete player"
+      );
+
+    } finally {
+
+      setDeleting(false);
+
+      setShowDelete(false);
+    }
+  };
+
+  if (loading) {
+
+    return <Loader />;
+  }
+
+  if (error) {
+
+    return (
+      <ErrorMessage
+        message={error}
+        onRetry={fetchPlayer}
+      />
+    );
+  }
+
+  const isBatsman =
+    player.role === "Batsman" ||
+    player.role === "All-rounder";
+
+  const isBowler =
+    player.role === "Bowler" ||
+    player.role === "All-rounder";
+
+  let roleColor =
+    "bg-cyan-500";
+
+  let roleIcon = "🏏";
+
+  if (player.role === "Bowler") {
+
+    roleColor = "bg-orange-500";
+
+    roleIcon = "⚡";
+  }
+
+  if (
+    player.role === "All-rounder"
+  ) {
+
+    roleColor = "bg-yellow-500";
+
+    roleIcon = "⭐";
+  }
+
+  if (
+    player.role === "Wicket-keeper"
+  ) {
+
+    roleColor = "bg-purple-500";
+
+    roleIcon = "🧤";
+  }
 
   return (
-    <div className="min-h-screen bg-surface-900 bg-hero-gradient">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
 
-        {/* Back btn */}
-        <Link to="/players"
-          className="inline-flex items-center gap-2 text-slate-400 text-sm font-medium
-                     hover:text-brand-400 transition-colors mb-8 animate-fade-up">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
-          Back to Players
+    <div className="min-h-screen bg-[#020617] text-white px-5 py-10">
+
+      <div className="max-w-5xl mx-auto">
+
+        {/* Back Button */}
+
+        <Link
+          to="/players"
+          className="
+            inline-block
+            text-cyan-400
+            mb-8
+          "
+        >
+
+          ← Back to Players
+
         </Link>
 
-        {/* ── Hero card ─────────────────────────────────────── */}
-        <div className="glass rounded-4xl p-7 mb-6 relative overflow-hidden shadow-card animate-fade-up">
-          {/* Background decoration */}
-          <div className="absolute -right-8 -top-8 w-48 h-48 rounded-full
-                          bg-gradient-to-br from-brand-500/10 to-transparent pointer-events-none" />
-          <div className="absolute -right-4 -bottom-4 text-8xl opacity-[0.04] pointer-events-none
-                          select-none leading-none">🏏</div>
+        {/* Main Card */}
 
-          {/* Player identity */}
-          <div className="flex items-start gap-5 mb-7 flex-wrap">
-            <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${grad} shadow-glow-teal
-                             flex items-center justify-center font-display font-black text-3xl text-white
-                             flex-shrink-0`}>
-              {initials(player.name)}
-            </div>
-            <div className="flex-1 min-w-0 pt-1">
-              <h1 className="font-display font-black text-3xl sm:text-4xl tracking-tight
-                             bg-gradient-to-r from-slate-100 to-slate-300
-                             bg-clip-text text-transparent leading-tight mb-2">
-                {player.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`badge ${badge.cls}`}>{badge.icon} {player.role}</span>
-                <span className="flex items-center gap-1.5 text-sm text-slate-400 font-medium">
-                  <span className="text-xl">{countryFlag(player.country)}</span>
-                  {player.country}
-                </span>
+        <div
+          className="
+            bg-white/5
+            border
+            border-white/10
+            rounded-[35px]
+            p-8
+            mb-8
+          "
+        >
+
+          {/* Top */}
+
+          <div
+            className="
+              flex
+              justify-between
+              items-start
+              flex-wrap
+              gap-5
+              mb-10
+            "
+          >
+
+            {/* Left */}
+
+            <div className="flex gap-5">
+
+              {/* Avatar */}
+
+              <div
+                className={`
+                  w-24
+                  h-24
+                  rounded-3xl
+                  ${roleColor}
+                  flex
+                  items-center
+                  justify-center
+                  text-3xl
+                  font-black
+                `}
+              >
+
+                {player.name
+                  ?.split(" ")
+                  .map((word) => word[0])
+                  .join("")
+                  .slice(0, 2)}
+
               </div>
+
+              {/* Name */}
+
+              <div>
+
+                <h1
+                  className="
+                    text-5xl
+                    font-black
+                    mb-3
+                  "
+                >
+
+                  {player.name}
+
+                </h1>
+
+                <div className="flex gap-3 flex-wrap">
+
+                  <div
+                    className={`
+                      ${roleColor}
+                      px-4
+                      py-2
+                      rounded-full
+                      text-sm
+                      font-bold
+                    `}
+                  >
+
+                    {roleIcon}
+                    {" "}
+                    {player.role}
+
+                  </div>
+
+                  <div
+                    className="
+                      bg-white/5
+                      px-4
+                      py-2
+                      rounded-full
+                      text-sm
+                    "
+                  >
+
+                    🌍 {player.country}
+
+                  </div>
+
+                </div>
+
+              </div>
+
             </div>
+
+            {/* Buttons */}
+
+            <div className="flex gap-3">
+
+              <Link
+                to={`/players/${id}/edit`}
+                className="
+                  bg-cyan-400
+                  text-black
+                  px-5
+                  py-3
+                  rounded-2xl
+                  font-bold
+                "
+              >
+
+                Edit
+
+              </Link>
+
+              <button
+                onClick={() =>
+                  setShowDelete(true)
+                }
+                className="
+                  bg-red-500
+                  text-white
+                  px-5
+                  py-3
+                  rounded-2xl
+                  font-bold
+                "
+              >
+
+                Delete
+
+              </button>
+
+            </div>
+
           </div>
 
-          {/* Stats grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 animate-fade-up-1">
-            <StatCard
-              label="Matches"
-              value={player.matches != null ? player.matches : "—"}
-              sub="International career"
-            />
+          {/* Stats */}
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+
+            <div
+              className="
+                bg-white/5
+                rounded-2xl
+                p-5
+              "
+            >
+
+              <p className="text-gray-400 text-sm mb-2">
+                Matches
+              </p>
+
+              <h2
+                className="
+                  text-4xl
+                  font-black
+                  text-cyan-400
+                "
+              >
+
+                {player.matches}
+
+              </h2>
+
+            </div>
 
             {isBatsman && (
+
               <>
-                <StatCard
-                  label="Total Runs"
-                  value={player.runs != null ? player.runs.toLocaleString() : "—"}
-                  sub="Career runs scored"
-                  accent="text-brand-400"
-                />
-                <StatCard
-                  label="Batting Avg"
-                  value={player.average != null ? player.average : "—"}
-                  sub="Runs per dismissal"
-                  accent="text-yellow-400"
-                />
+                <div
+                  className="
+                    bg-white/5
+                    rounded-2xl
+                    p-5
+                  "
+                >
+
+                  <p className="text-gray-400 text-sm mb-2">
+                    Runs
+                  </p>
+
+                  <h2
+                    className="
+                      text-4xl
+                      font-black
+                      text-yellow-400
+                    "
+                  >
+
+                    {player.runs}
+
+                  </h2>
+
+                </div>
+
+                <div
+                  className="
+                    bg-white/5
+                    rounded-2xl
+                    p-5
+                  "
+                >
+
+                  <p className="text-gray-400 text-sm mb-2">
+                    Average
+                  </p>
+
+                  <h2
+                    className="
+                      text-4xl
+                      font-black
+                    "
+                  >
+
+                    {player.average}
+
+                  </h2>
+
+                </div>
               </>
+
             )}
 
             {isBowler && (
+
               <>
-                <StatCard
-                  label="Wickets"
-                  value={player.wickets != null ? player.wickets : "—"}
-                  sub="Career wickets"
-                  accent="text-orange-400"
-                />
-                <StatCard
-                  label="Economy"
-                  value={player.economy != null ? player.economy : "—"}
-                  sub="Runs per over"
-                  accent="text-red-400"
-                />
+                <div
+                  className="
+                    bg-white/5
+                    rounded-2xl
+                    p-5
+                  "
+                >
+
+                  <p className="text-gray-400 text-sm mb-2">
+                    Wickets
+                  </p>
+
+                  <h2
+                    className="
+                      text-4xl
+                      font-black
+                      text-orange-400
+                    "
+                  >
+
+                    {player.wickets}
+
+                  </h2>
+
+                </div>
+
+                <div
+                  className="
+                    bg-white/5
+                    rounded-2xl
+                    p-5
+                  "
+                >
+
+                  <p className="text-gray-400 text-sm mb-2">
+                    Economy
+                  </p>
+
+                  <h2
+                    className="
+                      text-4xl
+                      font-black
+                    "
+                  >
+
+                    {player.economy}
+
+                  </h2>
+
+                </div>
               </>
+
             )}
+
           </div>
+
         </div>
 
-        {/* ── Profile info card ─────────────────────────────── */}
-        <div className="glass rounded-3xl p-6 animate-fade-up-2">
-          <div className="flex items-center gap-2 mb-5">
-            <span className="w-1 h-5 bg-gradient-to-b from-brand-400 to-brand-600 rounded-full" />
-            <h2 className="font-display font-bold text-base text-slate-200">Player Profile</h2>
+        {/* Profile Info */}
+
+        <div
+          className="
+            bg-white/5
+            border
+            border-white/10
+            rounded-3xl
+            p-6
+          "
+        >
+
+          <h2
+            className="
+              text-2xl
+              font-bold
+              mb-6
+            "
+          >
+
+            Player Profile
+
+          </h2>
+
+          <div className="grid grid-cols-2 gap-5">
+
+            <div>
+
+              <p className="text-gray-400 mb-2">
+                Full Name
+              </p>
+
+              <p className="font-bold">
+                {player.name}
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-gray-400 mb-2">
+                Country
+              </p>
+
+              <p className="font-bold">
+                {player.country}
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-gray-400 mb-2">
+                Role
+              </p>
+
+              <p className="font-bold">
+                {player.role}
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-gray-400 mb-2">
+                Experience
+              </p>
+
+              <p className="font-bold">
+                {player.matches} Matches
+              </p>
+
+            </div>
+
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[
-              { label: "Full Name",   value: player.name },
-              { label: "Nationality", value: `${countryFlag(player.country)} ${player.country}` },
-              { label: "Speciality",  value: player.role },
-              { label: "Experience",  value: `${player.matches != null ? player.matches : 0} matches` },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-white/[0.025] rounded-2xl px-4 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{label}</p>
-                <p className="text-sm font-semibold text-slate-200 leading-snug">{value}</p>
+        </div>
+
+      </div>
+
+      {/* Delete Modal */}
+
+      {showDelete && (
+
+        <div
+          className="
+            fixed
+            inset-0
+            bg-black/70
+            flex
+            justify-center
+            items-center
+            px-5
+          "
+        >
+
+          <div
+            className="
+              bg-[#111827]
+              border
+              border-white/10
+              rounded-3xl
+              p-8
+              max-w-md
+              w-full
+            "
+          >
+
+            <div
+              className="
+                text-center
+              "
+            >
+
+              <div className="text-6xl mb-5">
+                ⚠️
               </div>
-            ))}
+
+              <h2
+                className="
+                  text-3xl
+                  font-black
+                  mb-3
+                "
+              >
+
+                Delete Player?
+
+              </h2>
+
+              <p className="text-gray-400 mb-8">
+
+                Are you sure you want to
+                delete
+                {" "}
+                <span className="text-white font-bold">
+                  {player.name}
+                </span>
+                ?
+
+              </p>
+
+              <div className="flex gap-4">
+
+                <button
+                  onClick={() =>
+                    setShowDelete(false)
+                  }
+                  className="
+                    flex-1
+                    bg-white/5
+                    border
+                    border-white/10
+                    py-4
+                    rounded-2xl
+                  "
+                >
+
+                  Cancel
+
+                </button>
+
+                <button
+                  onClick={handleDelete}
+                  className="
+                    flex-1
+                    bg-red-500
+                    text-white
+                    py-4
+                    rounded-2xl
+                    font-bold
+                  "
+                >
+
+                  {deleting
+                    ? "Deleting..."
+                    : "Delete"}
+
+                </button>
+
+              </div>
+
+            </div>
+
           </div>
+
         </div>
 
-      </main>
+      )}
+
     </div>
+
   );
 };
 

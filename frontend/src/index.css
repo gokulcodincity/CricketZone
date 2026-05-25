@@ -1,70 +1,243 @@
+@import url(
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap'
+);
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap');
 
-@layer base {
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: 'Inter', sans-serif;
-    background-color: #060b14;
-    color: #e2e8f0;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: #060b14; }
-  ::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 99px; }
+/* ---------- BODY ---------- */
+
+body {
+
+  margin: 0;
+
+  padding: 0;
+
+  font-family: 'Inter', sans-serif;
+
+  background-color: #020617;
+
+  color: white;
+
+  min-height: 100vh;
 }
 
-@layer components {
-  /* Glass card base */
-  .glass {
-    @apply bg-white/[0.04] border border-white/[0.08] backdrop-blur-sm;
-  }
-  .glass-hover {
-    @apply hover:bg-white/[0.07] hover:border-brand-500/30 transition-all duration-300;
-  }
 
-  /* Input base */
-  .input-field {
-    @apply w-full bg-surface-800 border border-white/10 rounded-xl px-4 py-3
-           text-slate-200 placeholder-slate-500 text-sm font-medium
-           focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-500/50
-           transition-all duration-200;
-  }
-  .input-label {
-    @apply block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2;
-  }
+/* ---------- SCROLLBAR ---------- */
 
-  /* Buttons */
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl
-           bg-gradient-to-r from-brand-500 to-brand-600 text-white font-semibold text-sm
-           shadow-glow-teal hover:shadow-none hover:from-brand-400 hover:to-brand-500
-           transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
-           border border-white/10 bg-white/[0.04] text-slate-300 font-medium text-sm
-           hover:bg-white/[0.08] hover:border-brand-500/30 hover:text-brand-400
-           transition-all duration-200 active:scale-95;
-  }
-  .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
-           bg-red-500/10 border border-red-500/20 text-red-400 font-medium text-sm
-           hover:bg-red-500/20 hover:border-red-400/40
-           transition-all duration-200 active:scale-95;
-  }
+::-webkit-scrollbar {
 
-  /* Badge */
-  .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider;
-  }
-  .badge-teal   { @apply bg-brand-500/10 text-brand-400 border border-brand-500/20; }
-  .badge-orange { @apply bg-orange-500/10 text-orange-400 border border-orange-500/20; }
-  .badge-gold   { @apply bg-yellow-500/10 text-yellow-400 border border-yellow-500/20; }
-  .badge-purple { @apply bg-purple-500/10 text-purple-400 border border-purple-500/20; }
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+
+  background: #22d3ee;
+
+  border-radius: 20px;
+}
+
+
+/* ---------- GLASS CARD ---------- */
+
+.glass {
+
+  background: rgba(255, 255, 255, 0.05);
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  backdrop-filter: blur(10px);
+}
+
+
+/* ---------- INPUT ---------- */
+
+.input-field {
+
+  width: 100%;
+
+  background: #07111f;
+
+  border: 1px solid rgba(255,255,255,0.1);
+
+  border-radius: 16px;
+
+  padding: 14px;
+
+  color: white;
+
+  outline: none;
+}
+
+.input-field:focus {
+
+  border: 1px solid #22d3ee;
+}
+
+
+/* ---------- PRIMARY BUTTON ---------- */
+
+.btn-primary {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 14px 24px;
+
+  border-radius: 16px;
+
+  background: linear-gradient(
+    to right,
+    #22d3ee,
+    #14b8a6
+  );
+
+  color: black;
+
+  font-weight: bold;
+
+  border: none;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+
+  opacity: 0.9;
+}
+
+
+/* ---------- GHOST BUTTON ---------- */
+
+.btn-ghost {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 12px 20px;
+
+  border-radius: 16px;
+
+  background: rgba(255,255,255,0.05);
+
+  border: 1px solid rgba(255,255,255,0.1);
+
+  color: white;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.btn-ghost:hover {
+
+  background: rgba(255,255,255,0.1);
+}
+
+
+/* ---------- DELETE BUTTON ---------- */
+
+.btn-danger {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 12px 20px;
+
+  border-radius: 16px;
+
+  background: rgba(239,68,68,0.1);
+
+  border: 1px solid rgba(239,68,68,0.2);
+
+  color: #f87171;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.btn-danger:hover {
+
+  background: rgba(239,68,68,0.2);
+}
+
+
+/* ---------- BADGES ---------- */
+
+.badge {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 6px 12px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+
+  font-weight: bold;
+}
+
+.badge-teal {
+
+  background: rgba(34,211,238,0.1);
+
+  border: 1px solid rgba(34,211,238,0.2);
+
+  color: #22d3ee;
+}
+
+.badge-orange {
+
+  background: rgba(251,146,60,0.1);
+
+  border: 1px solid rgba(251,146,60,0.2);
+
+  color: #fb923c;
+}
+
+.badge-gold {
+
+  background: rgba(250,204,21,0.1);
+
+  border: 1px solid rgba(250,204,21,0.2);
+
+  color: #facc15;
+}
+
+.badge-purple {
+
+  background: rgba(168,85,247,0.1);
+
+  border: 1px solid rgba(168,85,247,0.2);
+
+  color: #c084fc;
 }

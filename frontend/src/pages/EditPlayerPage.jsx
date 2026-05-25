@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
-import { createPlayer } from "../services/apiService";
+import {
+  getPlayerById,
+  updatePlayer,
+} from "../services/apiService";
 
-const AddPlayerPage = () => {
+import Loader from "../components/Loader";
+
+const EditPlayerPage = () => {
+
+  const { id } = useParams();
 
   const navigate = useNavigate();
 
@@ -21,10 +32,51 @@ const AddPlayerPage = () => {
     });
 
   const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
     useState(false);
 
   const [error, setError] =
     useState("");
+
+  useEffect(() => {
+
+    fetchPlayer();
+
+  }, []);
+
+  const fetchPlayer = async () => {
+
+    try {
+
+      setLoading(true);
+
+      const data =
+        await getPlayerById(id);
+
+      setFormData({
+        name: data.name || "",
+        country: data.country || "",
+        role: data.role || "",
+        matches: data.matches || "",
+        runs: data.runs || "",
+        average: data.average || "",
+        wickets: data.wickets || "",
+        economy: data.economy || "",
+      });
+
+    } catch (err) {
+
+      setError(
+        "Failed to load player"
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
 
@@ -40,11 +92,9 @@ const AddPlayerPage = () => {
 
     try {
 
-      setLoading(true);
+      setSaving(true);
 
-      setError("");
-
-      const playerData = {
+      const updatedPlayer = {
         name: formData.name,
         country: formData.country,
         role: formData.role,
@@ -63,19 +113,22 @@ const AddPlayerPage = () => {
           : null,
       };
 
-      await createPlayer(playerData);
+      await updatePlayer(
+        id,
+        updatedPlayer
+      );
 
-      navigate("/players");
+      navigate(`/players/${id}`);
 
     } catch (err) {
 
       setError(
-        "Failed to add player"
+        "Failed to update player"
       );
 
     } finally {
 
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -87,16 +140,21 @@ const AddPlayerPage = () => {
     formData.role === "Bowler" ||
     formData.role === "All-rounder";
 
+  if (loading) {
+
+    return <Loader />;
+  }
+
   return (
 
     <div className="min-h-screen bg-[#020617] text-white px-5 py-10">
 
       <div className="max-w-3xl mx-auto">
 
-        {/* Back */}
+        {/* Back Button */}
 
         <Link
-          to="/players"
+          to={`/players/${id}`}
           className="
             inline-block
             text-cyan-400
@@ -104,7 +162,7 @@ const AddPlayerPage = () => {
           "
         >
 
-          ← Back to Players
+          ← Back to Player
 
         </Link>
 
@@ -122,7 +180,7 @@ const AddPlayerPage = () => {
             "
           >
 
-            NEW PLAYER
+            EDIT PLAYER
 
           </p>
 
@@ -134,13 +192,13 @@ const AddPlayerPage = () => {
             "
           >
 
-            Add Player
+            Edit Player
 
           </h1>
 
           <p className="text-gray-400">
 
-            Add new cricket player to database.
+            Update player information.
 
           </p>
 
@@ -192,7 +250,6 @@ const AddPlayerPage = () => {
                   border-white/10
                   rounded-2xl
                   p-4
-                  outline-none
                 "
               />
 
@@ -498,7 +555,7 @@ const AddPlayerPage = () => {
           <div className="flex gap-4">
 
             <Link
-              to="/players"
+              to={`/players/${id}`}
               className="
                 flex-1
                 text-center
@@ -516,7 +573,7 @@ const AddPlayerPage = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={saving}
               className="
                 flex-1
                 bg-cyan-400
@@ -527,9 +584,9 @@ const AddPlayerPage = () => {
               "
             >
 
-              {loading
-                ? "Adding..."
-                : "Add Player"}
+              {saving
+                ? "Saving..."
+                : "Save Changes"}
 
             </button>
 
@@ -544,4 +601,4 @@ const AddPlayerPage = () => {
   );
 };
 
-export default AddPlayerPage;
+export default EditPlayerPage;

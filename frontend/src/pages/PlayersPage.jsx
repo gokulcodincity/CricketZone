@@ -1,180 +1,535 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import { Link } from "react-router-dom";
-import { getPlayers, getPlayersByCountry } from "../services/apiService";
+
+import {
+  getPlayers,
+  getPlayersByCountry,
+} from "../services/apiService";
+
 import PlayerCard from "../components/PlayerCard";
+
 import Loader from "../components/Loader";
+
 import ErrorMessage from "../components/ErrorMessage";
 
-/* ─── Filter config ─────────────────────────────────────── */
-const FILTERS = [
-  { label: "All",          value: "ALL",          flag: "\uD83C\uDF0D" },
-  { label: "India",        value: "India",        flag: "\uD83C\uDDEE\uD83C\uDDF3" },
-  { label: "Australia",    value: "Australia",    flag: "\uD83C\uDDE6\uD83C\uDDFA" },
-  { label: "England",      value: "England",      flag: "\uD83C\uDFF4" },
-  { label: "Pakistan",     value: "Pakistan",     flag: "\uD83C\uDDF5\uD83C\uDDF0" },
-  { label: "South Africa", value: "South Africa", flag: "\uD83C\uDDFF\uD83C\uDDE6" },
-  { label: "New Zealand",  value: "New Zealand",  flag: "\uD83C\uDDF3\uD83C\uDDFF" },
-];
-
-/* ─── Stat pill ─────────────────────────────────────────── */
-const StatPill = ({ icon, label, value, color = "text-brand-400" }) => (
-  <div className="flex items-center gap-2.5 glass rounded-2xl px-4 py-2.5 animate-fade-up">
-    <span className="text-lg">{icon}</span>
-    <div>
-      <p className={`font-display font-bold text-base leading-none ${color}`}>{value}</p>
-      <p className="text-[11px] text-slate-500 font-medium mt-0.5">{label}</p>
-    </div>
-  </div>
-);
-
-/* ─── Page ──────────────────────────────────────────────── */
 const PlayersPage = () => {
-  const [players,       setPlayers]       = useState([]);
-  const [loading,       setLoading]       = useState(true);
-  const [error,         setError]         = useState("");
-  const [activeCountry, setActiveCountry] = useState("ALL");
 
-  useEffect(() => { fetchPlayers(); }, []);
+  const [players, setPlayers] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [activeCountry, setActiveCountry] =
+    useState("ALL");
+
+  useEffect(() => {
+
+    fetchPlayers();
+
+  }, []);
 
   const fetchPlayers = async () => {
+
     try {
+
       setLoading(true);
+
       setError("");
-      const data = await getPlayers();
+
+      const data =
+        await getPlayers();
+
       setPlayers(data);
+
     } catch (err) {
-      setError(
+
+      if (
         err.message === "Network Error"
-          ? "Cannot reach the server. Make sure the backend is running on port 8000."
-          : "Unable to fetch players. Please try again."
-      );
+      ) {
+
+        setError(
+          "Backend server is not running"
+        );
+
+      } else {
+
+        setError(
+          "Failed to fetch players"
+        );
+      }
+
     } finally {
+
       setLoading(false);
     }
   };
 
-  const handleFilter = async (country) => {
+  const handleFilter = async (
+    country
+  ) => {
+
     try {
-      setActiveCountry(country);
+
       setLoading(true);
+
       setError("");
-      const data = country === "ALL" ? await getPlayers() : await getPlayersByCountry(country);
+
+      setActiveCountry(country);
+
+      let data = [];
+
+      if (country === "ALL") {
+
+        data = await getPlayers();
+
+      } else {
+
+        data =
+          await getPlayersByCountry(
+            country
+          );
+      }
+
       setPlayers(data);
+
     } catch (err) {
-      setError(err.message);
+
+      setError(
+        "Filter failed"
+      );
+
     } finally {
+
       setLoading(false);
     }
   };
 
-  /* derived */
-  const countries   = [...new Set(players.map(p => p.country))].length;
-  const batsmen     = players.filter(p => p.role === "Batsman" || p.role === "All-rounder").length;
-  const bowlers     = players.filter(p => p.role === "Bowler"  || p.role === "All-rounder").length;
+  const countries =
+    [...new Set(
+      players.map(
+        (player) => player.country
+      )
+    )].length;
+
+  const batsmen =
+    players.filter(
+      (player) =>
+        player.role === "Batsman" ||
+        player.role === "All-rounder"
+    ).length;
+
+  const bowlers =
+    players.filter(
+      (player) =>
+        player.role === "Bowler" ||
+        player.role === "All-rounder"
+    ).length;
+
+  if (loading) {
+
+    return <Loader />;
+  }
+
+  if (error) {
+
+    return (
+      <ErrorMessage
+        message={error}
+        onRetry={fetchPlayers}
+      />
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-surface-900 bg-hero-gradient">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        {/* ── Header ────────────────────────────────────────── */}
-        <div className="mb-8 animate-fade-up">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-1 h-6 bg-gradient-to-b from-brand-400 to-brand-600 rounded-full block" />
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-500">
-              Squad Database
-            </p>
-          </div>
-          <h1 className="font-display font-black text-4xl sm:text-5xl tracking-tight
-                         bg-gradient-to-r from-slate-100 via-slate-200 to-brand-400
-                         bg-clip-text text-transparent mb-2">
+    <div className="min-h-screen bg-[#020617] text-white px-5 py-10">
+
+      <div className="max-w-7xl mx-auto">
+
+        {/* Header */}
+
+        <div className="mb-10">
+
+          <p
+            className="
+              text-cyan-400
+              text-sm
+              font-bold
+              tracking-[4px]
+              mb-3
+            "
+          >
+
+            SQUAD DATABASE
+
+          </p>
+
+          <h1
+            className="
+              text-5xl
+              md:text-6xl
+              font-black
+              mb-3
+            "
+          >
+
             Cricket Players
+
           </h1>
-          <p className="text-slate-400 text-base">
-            Explore profiles, stats &amp; career records of world-class cricketers.
+
+          <p className="text-gray-400">
+
+            Explore profiles and stats
+            of world-class cricketers.
+
           </p>
+
         </div>
 
-        {/* ── Stats Shelf ───────────────────────────────────── */}
-        {!loading && !error && (
-          <div className="flex flex-wrap gap-3 mb-8">
-            <StatPill icon="🏏" label="Total Players" value={players.length} />
-            <StatPill icon="\uD83C\uDF0D" label="Countries"    value={countries} color="text-purple-400" />
-            <StatPill icon="⭐" label="Batsmen"      value={batsmen}   color="text-yellow-400" />
-            <StatPill icon="⚡" label="Bowlers"      value={bowlers}   color="text-orange-400" />
-          </div>
-        )}
+        {/* Stats */}
 
-        {/* ── Filter Tabs ───────────────────────────────────── */}
-        <div className="mb-8 animate-fade-up-1">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-600 mb-3">
+        <div
+          className="
+            grid
+            grid-cols-2
+            md:grid-cols-4
+            gap-5
+            mb-10
+          "
+        >
+
+          <div
+            className="
+              bg-white/5
+              border
+              border-white/10
+              rounded-3xl
+              p-5
+            "
+          >
+
+            <p className="text-gray-400 text-sm mb-2">
+              Total Players
+            </p>
+
+            <h2
+              className="
+                text-4xl
+                font-black
+                text-cyan-400
+              "
+            >
+
+              {players.length}
+
+            </h2>
+
+          </div>
+
+          <div
+            className="
+              bg-white/5
+              border
+              border-white/10
+              rounded-3xl
+              p-5
+            "
+          >
+
+            <p className="text-gray-400 text-sm mb-2">
+              Countries
+            </p>
+
+            <h2
+              className="
+                text-4xl
+                font-black
+                text-purple-400
+              "
+            >
+
+              {countries}
+
+            </h2>
+
+          </div>
+
+          <div
+            className="
+              bg-white/5
+              border
+              border-white/10
+              rounded-3xl
+              p-5
+            "
+          >
+
+            <p className="text-gray-400 text-sm mb-2">
+              Batsmen
+            </p>
+
+            <h2
+              className="
+                text-4xl
+                font-black
+                text-yellow-400
+              "
+            >
+
+              {batsmen}
+
+            </h2>
+
+          </div>
+
+          <div
+            className="
+              bg-white/5
+              border
+              border-white/10
+              rounded-3xl
+              p-5
+            "
+          >
+
+            <p className="text-gray-400 text-sm mb-2">
+              Bowlers
+            </p>
+
+            <h2
+              className="
+                text-4xl
+                font-black
+                text-orange-400
+              "
+            >
+
+              {bowlers}
+
+            </h2>
+
+          </div>
+
+        </div>
+
+        {/* Filters */}
+
+        <div className="mb-10">
+
+          <p
+            className="
+              text-gray-400
+              text-sm
+              mb-4
+            "
+          >
+
             Filter by Country
+
           </p>
-          <div className="flex flex-wrap gap-2">
-            {FILTERS.map(({ label, value, flag }) => (
-              <button
-                key={value}
-                id={`filter-${value.toLowerCase().replace(/\s/g, "-")}`}
-                onClick={() => handleFilter(value)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold
-                            border transition-all duration-200 active:scale-95
-                            ${activeCountry === value
-                              ? "bg-brand-500/20 border-brand-500/50 text-brand-400 shadow-glow-teal"
-                              : "glass border-white/[0.07] text-slate-400 hover:border-brand-500/30 hover:text-brand-300"
-                            }`}
-              >
-                <span className="text-base">{flag}</span>
-                {label}
-              </button>
-            ))}
+
+          <div className="flex flex-wrap gap-3">
+
+            <button
+              onClick={() =>
+                handleFilter("ALL")
+              }
+              className={
+                activeCountry === "ALL"
+                  ? "bg-cyan-400 text-black px-5 py-3 rounded-2xl font-bold"
+                  : "bg-white/5 border border-white/10 px-5 py-3 rounded-2xl"
+              }
+            >
+
+              🌍 All
+
+            </button>
+
+            <button
+              onClick={() =>
+                handleFilter("India")
+              }
+              className={
+                activeCountry === "India"
+                  ? "bg-cyan-400 text-black px-5 py-3 rounded-2xl font-bold"
+                  : "bg-white/5 border border-white/10 px-5 py-3 rounded-2xl"
+              }
+            >
+
+              🇮🇳 India
+
+            </button>
+
+            <button
+              onClick={() =>
+                handleFilter("Australia")
+              }
+              className={
+                activeCountry === "Australia"
+                  ? "bg-cyan-400 text-black px-5 py-3 rounded-2xl font-bold"
+                  : "bg-white/5 border border-white/10 px-5 py-3 rounded-2xl"
+              }
+            >
+
+              🇦🇺 Australia
+
+            </button>
+
+            <button
+              onClick={() =>
+                handleFilter("England")
+              }
+              className={
+                activeCountry === "England"
+                  ? "bg-cyan-400 text-black px-5 py-3 rounded-2xl font-bold"
+                  : "bg-white/5 border border-white/10 px-5 py-3 rounded-2xl"
+              }
+            >
+
+              🏴 England
+
+            </button>
+
           </div>
+
         </div>
 
-        {/* ── States ────────────────────────────────────────── */}
-        {loading && <Loader />}
+        {/* Top Bar */}
 
-        {!loading && error && (
-          <ErrorMessage message={error} onRetry={fetchPlayers} />
-        )}
+        <div
+          className="
+            flex
+            justify-between
+            items-center
+            flex-wrap
+            gap-4
+            mb-8
+          "
+        >
 
-        {!loading && !error && players.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4 animate-fade-up">
-            <div className="w-20 h-20 rounded-3xl glass flex items-center justify-center text-4xl">
+          <p className="text-gray-400">
+
+            Showing
+            {" "}
+            <span className="text-white font-bold">
+              {players.length}
+            </span>
+            {" "}
+            players
+
+          </p>
+
+          <Link
+            to="/players/add"
+            className="
+              bg-cyan-400
+              text-black
+              px-5
+              py-3
+              rounded-2xl
+              font-bold
+            "
+          >
+
+            + Add Player
+
+          </Link>
+
+        </div>
+
+        {/* Empty State */}
+
+        {players.length === 0 ? (
+
+          <div
+            className="
+              text-center
+              py-20
+            "
+          >
+
+            <div className="text-7xl mb-5">
               🏏
             </div>
-            <div className="text-center">
-              <h3 className="font-display font-bold text-lg text-slate-300 mb-1">No players found</h3>
-              <p className="text-slate-500 text-sm">Try a different country filter or add new players.</p>
-            </div>
-            <Link to="/players/add" className="btn-primary mt-2">
+
+            <h2
+              className="
+                text-3xl
+                font-bold
+                mb-3
+              "
+            >
+
+              No Players Found
+
+            </h2>
+
+            <p className="text-gray-400 mb-8">
+
+              Try another filter
+              or add new players.
+
+            </p>
+
+            <Link
+              to="/players/add"
+              className="
+                bg-cyan-400
+                text-black
+                px-6
+                py-4
+                rounded-2xl
+                font-bold
+              "
+            >
+
               + Add First Player
+
             </Link>
+
           </div>
+
+        ) : (
+
+          <div
+            className="
+              grid
+              grid-cols-1
+              md:grid-cols-2
+              lg:grid-cols-3
+              xl:grid-cols-4
+              gap-5
+            "
+          >
+
+            {players.map(
+              (player, index) => (
+
+                <PlayerCard
+                  key={player._id}
+                  player={player}
+                  index={index}
+                />
+
+              )
+            )}
+
+          </div>
+
         )}
 
-        {/* ── Grid ──────────────────────────────────────────── */}
-        {!loading && !error && players.length > 0 && (
-          <>
-            <div className="flex items-center justify-between mb-5">
-              <p className="text-sm text-slate-500 font-medium">
-                Showing <span className="text-slate-300 font-semibold">{players.length}</span> players
-              </p>
-              <Link to="/players/add" className="btn-ghost text-xs py-2 px-3.5">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                Add Player
-              </Link>
-            </div>
+      </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {players.map((player, i) => (
-                <PlayerCard key={player._id} player={player} index={i} />
-              ))}
-            </div>
-          </>
-        )}
-      </main>
     </div>
+
   );
 };
 
